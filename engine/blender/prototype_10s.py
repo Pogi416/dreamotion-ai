@@ -11,8 +11,12 @@ os.makedirs(OUT, exist_ok=True)
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
 scene = bpy.context.scene
-scene.render.engine = "BLENDER_EEVEE_NEXT"
-scene.eevee.taa_render_samples = 32
+try:
+    scene.render.engine = "BLENDER_EEVEE_NEXT"
+except Exception:
+    scene.render.engine = "BLENDER_EEVEE"
+if hasattr(scene, "eevee"):
+    scene.eevee.taa_render_samples = 24
 scene.render.resolution_x = 1280
 scene.render.resolution_y = 720
 scene.render.resolution_percentage = 100
@@ -80,8 +84,8 @@ for i in range(9):
     sat.name = f"Satellite {i+1:02d}"
     sat.data.materials.append(cyan if i % 2 == 0 else violet)
     sat.keyframe_insert(data_path="location", frame=1)
-    sat.location.x = radius*math.cos(a + math.tau)
-    sat.location.y = radius*math.sin(a + math.tau)
+    sat.location.x = radius*math.cos(a + 1.2)
+    sat.location.y = radius*math.sin(a + 1.2)
     sat.keyframe_insert(data_path="location", frame=240)
 
 def add_text(body, name, size, location, material):
