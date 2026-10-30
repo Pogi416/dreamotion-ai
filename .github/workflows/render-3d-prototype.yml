@@ -1,0 +1,47 @@
+name: Render Dreamotion 3D prototype
+
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: Short title shown in the 3D scene
+        required: true
+        default: "DREAMOTION AI"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dreamotion-3d-render
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Install Blender and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender ffmpeg xvfb libgl1-mesa-dri
+      - name: Render 10-second procedural 3D animation
+        env:
+          STUDIO_TOPIC: ${{ inputs.topic }}
+          OUTPUT_DIR: output
+        run: |
+          mkdir -p output
+          xvfb-run -a blender -b --python engine/blender/prototype_10s.py
+      - name: Add original ambient audio and validate MP4
+        run: bash scripts/make_audio.sh output
+      - name: Upload finished video and editable scene
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dreamotion-3D-Prototype
+          path: |
+            output/Dreamotion_3D_Prototype_10s.mp4
+            output/dreamotion_3d_prototype.blend
+            output/validation.json
+          retention-days: 14
